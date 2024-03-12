@@ -22,6 +22,7 @@ USER agent
 # Set environment variables for .NET
 ENV DOTNET_ROOT=/home/agent/.dotnet
 ENV PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools
+ENV PATH="/usr/lib/node_modules/:${PATH}"
 
 RUN node -v \
     npm -v \
