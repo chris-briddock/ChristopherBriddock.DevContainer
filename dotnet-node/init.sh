@@ -32,13 +32,17 @@ OS_NAME=$(lsb_release -i | cut -f2 | tr '[:upper:]' '[:lower:]')
 # Add the Microsoft repository to the system's sources list
 echo "deb [signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/$OS_NAME/$OS_VERSION/prod $OS_CODENAME main" | tee /etc/apt/sources.list.d/microsoft-prod.list
 
+# 
+
 apt-get update -y && apt-get upgrade -y
 apt-get install dotnet-sdk-8.0 -y
 apt-get install dotnet-runtime-8.0 -y
 
 # Install .NET tools
+dotnet workload update
 dotnet tool install --global dotnet-ef
 dotnet tool install --global dotnet-reportgenerator-globaltool
+dotnet tool install --global PowerShell
 
 # Clean up
 apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/*
