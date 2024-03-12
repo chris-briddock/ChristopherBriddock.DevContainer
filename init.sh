@@ -16,8 +16,6 @@ apt update -y && apt install -y nodejs
 npm install -g yarn pnpm
 npm cache clean --force
 
-pnpm i @angular/cli vite
-
 
 # Install .NET SDK
 
