@@ -13,11 +13,8 @@ echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.co
 apt update -y && apt install -y nodejs
 
 # Install Yarn and PNPM
-npm install -g yarn pnpm
+npm install -g yarn pnpm @angular/cli vite
 npm cache clean --force
-
-
-# Install .NET SDK
 
 # Download the Microsoft GPG key and save it to a file
 curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg
@@ -30,8 +27,7 @@ OS_NAME=$(lsb_release -i | cut -f2 | tr '[:upper:]' '[:lower:]')
 # Add the Microsoft repository to the system's sources list
 echo "deb [signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/$OS_NAME/$OS_VERSION/prod $OS_CODENAME main" | tee /etc/apt/sources.list.d/microsoft-prod.list
 
-# 
-
+# Install .NET
 apt-get update -y && apt-get upgrade -y
 apt-get install dotnet-sdk-8.0 -y
 apt-get install dotnet-runtime-8.0 -y
