@@ -30,5 +30,5 @@ RUN node -v \
     dotnet --version \
     git --version 
 
-# Drop to shell or your desired command
+# Drop to shell
 CMD ["/bin/bash"]
