@@ -24,6 +24,8 @@ RUN chown -R agent:agent /usr/share/dotnet/sdk
 RUN usermod -aG docker agent && \
     newgrp docker
 
+RUN chown agent:agent /var/run/docker.sock
+
 # Switch to non-root user
 USER agent
 
