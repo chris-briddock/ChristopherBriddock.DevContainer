@@ -31,8 +31,8 @@ RUN node -v \
     dotnet --version \
     git --version
 
-RUN dotnet tool install --global dotnet-ef \
-    dotnet tool install --global dotnet-reportgenerator-globaltool
+RUN dotnet tool update --local dotnet-ef
+RUN dotnet tool update --local dotnet-reportgenerator-globaltool
 
 # Drop to shell
 CMD ["/bin/bash"]
