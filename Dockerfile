@@ -34,7 +34,5 @@ RUN node -v \
 RUN dotnet tool install --global dotnet-ef \
     dotnet tool install --global dotnet-reportgenerator-globaltool
 
-RUN dotnet workload install 
-
 # Drop to shell
 CMD ["/bin/bash"]
