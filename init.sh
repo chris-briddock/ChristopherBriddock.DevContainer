@@ -38,7 +38,7 @@ dotnet tool install --global dotnet-ef
 dotnet tool install --global dotnet-reportgenerator-globaltool
 
 # Install PowerShell
-sudo apt-get install -y powershell
+apt-get install -y powershell
 
 # Clean up
 apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/*
