@@ -1,5 +1,8 @@
 FROM debian:bookworm-slim AS base
 
+# Expose Docker socket
+VOLUME /var/run/docker.sock
+
 # Copy script
 COPY ./init.sh ./
 
@@ -17,6 +20,10 @@ RUN chmod +x ./init.sh && \
     rm ./init.sh
 
 RUN chown -R agent:agent /usr/share/dotnet/sdk
+
+RUN groupadd docker \
+    usermod -aG docker agent \
+    newgrp docker 
 
 # Switch to non-root user
 USER agent
