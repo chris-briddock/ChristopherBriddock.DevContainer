@@ -27,32 +27,35 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /
     apt-get install -y docker-ce docker-ce-cli containerd.io 
 
 RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
-    NODE_MAJOR=20 \
-    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
-    apt update -y && apt install -y nodejs
+    && NODE_MAJOR=20 \
+    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
+    && apt update -y \
+    && apt install -y nodejs
+
+RUN npm i -g @angular/cli yarn pnpm
 
 # Download the Microsoft GPG key and save it to a file
-RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg \
+RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg  && \
     # Define the OS version
-    OS_VERSION=$(lsb_release -r | awk '{print $2}') \
+    OS_VERSION=$(lsb_release -r | awk '{print $2}') && \
     # Get the distribution codename
-    OS_CODENAME=$(lsb_release -cs) \
+    OS_CODENAME=$(lsb_release -cs) && \
     # Get the OS name e.g Debian, Ubuntu
-    OS_NAME=$(lsb_release -i | cut -f2 | tr '[:upper:]' '[:lower:]') \
+    OS_NAME=$(lsb_release -i | cut -f2 | tr '[:upper:]' '[:lower:]') && \
     # Add the Microsoft repository to the system's sources list
     echo "deb [signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/$OS_NAME/$OS_VERSION/prod $OS_CODENAME main" | tee /etc/apt/sources.list.d/microsoft-prod.list
 
 # Install .NET
-RUN apt-get update -y && apt-get upgrade -y \
-    apt-get install dotnet-sdk-8.0 -y \
+RUN apt-get update -y && apt-get upgrade -y && \
+    apt-get install dotnet-sdk-8.0 -y && \
     apt-get install dotnet-runtime-8.0 -y
 
 # Download PowerShell package
-RUN curl -fsSL -o powershell.deb https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/powershell_7.4.1-1.deb_amd64.deb \
+RUN curl -fsSL -o powershell.deb https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/powershell_7.4.1-1.deb_amd64.deb && \
     # Install PowerShell package
-    dpkg -i powershell.deb \
+    dpkg -i powershell.deb && \
     # Install any missing dependencies
-    apt-get install -f \
+    apt-get install -f && \
     # Clean up downloaded package
     rm powershell.deb
 
@@ -83,10 +86,10 @@ ENV PATH="/usr/lib/node_modules/:${PATH}"
 
 RUN node -v
 RUN npm -v 
-RUN yarn -v
-RUN pnpm -v
 RUN dotnet --version
 RUN git --version
+RUN yarn -v
+RUN pnpm -v
 
 # Drop to shell
 CMD ["/bin/bash"]
