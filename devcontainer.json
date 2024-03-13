@@ -1,0 +1,13 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/alpine
+{
+	"name": "Custom-Container",
+	"image": "immerslve/devcontainer-dotnet-node:latest",
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "bash",
+	
+	"mounts": [
+        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+    ]
+}
