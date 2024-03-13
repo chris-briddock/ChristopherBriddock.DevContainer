@@ -21,8 +21,7 @@ RUN chmod +x ./init.sh && \
 
 RUN chown -R agent:agent /usr/share/dotnet/sdk
 
-RUN groupadd docker && \
-    usermod -aG docker agent && \
+RUN usermod -aG docker agent && \
     newgrp docker
 
 # Switch to non-root user
