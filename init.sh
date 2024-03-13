@@ -38,7 +38,11 @@ dotnet tool install --global dotnet-ef
 dotnet tool install --global dotnet-reportgenerator-globaltool
 
 # Install PowerShell
-apt-get install -y powershell
+curl -fsSL https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/powershell_7.4.1-1.deb_amd64.deb
+dpkg -i powershell_7.4.1-1.deb_amd64.deb
+apt-get install -f
+rm powershell_7.4.1-1.deb_amd64.deb
+
 
 # Clean up
 apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/*
