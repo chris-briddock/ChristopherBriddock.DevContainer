@@ -36,7 +36,9 @@ apt-get install dotnet-runtime-8.0 -y
 dotnet workload update
 dotnet tool install --global dotnet-ef
 dotnet tool install --global dotnet-reportgenerator-globaltool
-dotnet tool install --global PowerShell
+
+# Install PowerShell
+sudo apt-get install -y powershell
 
 # Clean up
 apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/*
