@@ -32,11 +32,6 @@ apt-get update -y && apt-get upgrade -y
 apt-get install dotnet-sdk-8.0 -y
 apt-get install dotnet-runtime-8.0 -y
 
-# Install .NET tools
-dotnet workload update
-dotnet tool install --global dotnet-ef
-dotnet tool install --global dotnet-reportgenerator-globaltool
-
 # Download PowerShell package
 curl -fsSL -o powershell.deb https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/powershell_7.4.1-1.deb_amd64.deb
 # Install PowerShell package

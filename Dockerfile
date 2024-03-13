@@ -29,7 +29,11 @@ RUN node -v \
     yarn -v \
     pnpm -v \
     dotnet --version \
-    git --version 
+    git --version
+
+RUN dotnet workload update \
+    dotnet tool install --global dotnet-ef \
+    dotnet tool install --global dotnet-reportgenerator-globaltool
 
 # Drop to shell
 CMD ["/bin/bash"]
