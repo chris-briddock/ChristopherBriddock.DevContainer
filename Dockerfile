@@ -16,6 +16,8 @@ RUN chmod +x ./init.sh && \
     ./init.sh && \
     rm ./init.sh
 
+RUN chown -R agent:agent /usr/share/dotnet/sdk
+
 # Switch to non-root user
 USER agent
 
