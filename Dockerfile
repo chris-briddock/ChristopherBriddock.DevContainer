@@ -1,5 +1,7 @@
 FROM debian:bookworm-slim AS base
 
+VOLUME "/var/run/docker.sock"
+
 # Copy script
 COPY ./init.sh ./
 
