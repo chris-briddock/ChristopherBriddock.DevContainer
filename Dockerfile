@@ -31,9 +31,10 @@ RUN node -v \
     dotnet --version \
     git --version
 
-RUN dotnet workload update \
-    dotnet tool install --global dotnet-ef \
+RUN dotnet tool install --global dotnet-ef \
     dotnet tool install --global dotnet-reportgenerator-globaltool
+
+RUN dotnet workload install 
 
 # Drop to shell
 CMD ["/bin/bash"]
