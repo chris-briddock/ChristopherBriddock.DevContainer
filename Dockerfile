@@ -75,6 +75,7 @@ RUN chown -R agent:agent /home/agent
 # Own the dotnet directory
 RUN chown -R agent:agent /usr/share/dotnet/sdk
 RUN chown -R agent:agent /usr/lib/node_modules
+RUN chown -R agent:agent /usr/bin
 
 # Add user to docker group
 RUN usermod -aG docker agent && \
