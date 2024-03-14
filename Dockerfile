@@ -1,5 +1,6 @@
 FROM debian:bookworm-slim AS base
 
+# Mount the host's docker socket
 VOLUME "/var/run/docker.sock"
 
 # Install dependencies
@@ -26,6 +27,7 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /
     apt-get update && \
     apt-get install -y docker-ce docker-ce-cli containerd.io 
 
+# Install node.js
 RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
     && NODE_MAJOR=20 \
     && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
@@ -72,7 +74,9 @@ RUN chown -R agent:agent /home/agent
 
 # Own the dotnet directory
 RUN chown -R agent:agent /usr/share/dotnet/sdk
+RUN chown -R agent:agent /usr/lib/node_modules
 
+# Add user to docker group
 RUN usermod -aG docker agent && \
     newgrp docker
 
@@ -84,6 +88,7 @@ ENV DOTNET_ROOT=/home/agent/.dotnet
 ENV PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools
 ENV PATH="/usr/lib/node_modules/:${PATH}"
 
+# Check versions for each tool
 RUN node -v
 RUN npm -v 
 RUN dotnet --version
