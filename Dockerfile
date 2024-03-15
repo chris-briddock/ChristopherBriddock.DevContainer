@@ -102,6 +102,7 @@ RUN npm i -g @angular/cli yarn pnpm vite bun
 RUN yarn -v
 RUN pnpm -v
 RUN vite --version
+RUN bun --version
 
 # Drop to shell
 CMD ["/bin/bash"]
