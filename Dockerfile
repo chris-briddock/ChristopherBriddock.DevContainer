@@ -97,7 +97,7 @@ RUN dotnet --version
 RUN git --version
 
 # Install npm dependencies
-RUN npm i -g @angular/cli yarn pnpm vite
+RUN npm i -g @angular/cli yarn pnpm vite bun
 
 RUN yarn -v
 RUN pnpm -v
