@@ -34,8 +34,6 @@ RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg -
     && apt update -y \
     && apt install -y nodejs
 
-RUN npm i -g @angular/cli yarn pnpm
-
 # Download the Microsoft GPG key and save it to a file
 RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg  && \
     # Define the OS version
@@ -71,10 +69,11 @@ RUN useradd -m -d /home/agent agent && \
 
 # Own the user home directory
 RUN chown -R agent:agent /home/agent
-
 # Own the dotnet directory
 RUN chown -R agent:agent /usr/share/dotnet/sdk
+# Own the global node_modules to enable global installations
 RUN chown -R agent:agent /usr/lib/node_modules
+# Own the global executable folder which npm symlinks to.
 RUN chown -R agent:agent /usr/bin
 
 # Add user to docker group
@@ -88,6 +87,7 @@ USER agent
 ENV DOTNET_ROOT=/home/agent/.dotnet
 ENV PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools
 ENV PATH="/usr/lib/node_modules/:${PATH}"
+ENV PATH="/usr/bin:${PATH}"
 
 # Check versions for each tool
 RUN node -v
@@ -96,6 +96,9 @@ RUN dotnet --version
 RUN git --version
 RUN yarn -v
 RUN pnpm -v
+
+# Install npm dependencies
+RUN npm i -g @angular/cli yarn pnpm vite
 
 # Drop to shell
 CMD ["/bin/bash"]
