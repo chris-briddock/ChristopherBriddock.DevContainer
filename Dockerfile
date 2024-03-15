@@ -19,7 +19,8 @@ RUN apt-get update -y && apt-get install -y \
     libstdc++6 \
     zlib1g \
     apt-transport-https \
-    software-properties-common 
+    software-properties-common \
+    unzip
 
 # Install docker
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
