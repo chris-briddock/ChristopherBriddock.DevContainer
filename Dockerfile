@@ -94,11 +94,13 @@ RUN node -v
 RUN npm -v 
 RUN dotnet --version
 RUN git --version
-RUN yarn -v
-RUN pnpm -v
 
 # Install npm dependencies
 RUN npm i -g @angular/cli yarn pnpm vite
+
+RUN yarn -v
+RUN pnpm -v
+RUN vite --version
 
 # Drop to shell
 CMD ["/bin/bash"]
