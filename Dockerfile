@@ -103,6 +103,3 @@ RUN yarn -v
 RUN pnpm -v
 RUN vite --version
 RUN bun --version
-
-# Drop to shell
-CMD ["/bin/bash"]
