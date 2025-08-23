@@ -1,105 +1,107 @@
-FROM debian:bookworm-slim AS base
+FROM fedora:latest
 
-# Mount the host's docker socket
-VOLUME "/var/run/docker.sock"
-
-# Install dependencies
-RUN apt-get update -y && apt-get install -y \
-    lsb-release \
-    jq \
-    gnupg \
-    git \
+# Install base dependencies
+RUN dnf -y update && \
+    dnf -y install \
     curl \
+    wget \
+    git \
+    unzip \
     ca-certificates \
-    libc6 \
-    libgcc-s1 \
-    libgssapi-krb5-2 \
-    libicu72 \
-    libssl3 \
-    libstdc++6 \
-    zlib1g \
-    apt-transport-https \
-    software-properties-common \
-    unzip
+    make \
+    gcc \
+    gcc-c++ \
+    openssl-devel \
+    zlib-devel \
+    libpq-devel \
+    tar \
+    which
+RUN dnf clean all
 
-# Install docker
-RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
-    apt-get update && \
-    apt-get install -y docker-ce docker-ce-cli containerd.io 
+# Install Docker CLI (official scripted install)
+RUN curl -fsSL https://get.docker.com -o get-docker.sh && \
+    sh get-docker.sh --no-install-recommends --skip-engine --skip-compose && \
+    rm get-docker.sh
 
-# Install node.js
-RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
-    && NODE_MAJOR=20 \
-    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
-    && apt update -y \
-    && apt install -y nodejs
+# Install Oracle Java (latest LTS, e.g., 21)
+RUN curl -fsSL https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.tar.gz -o /tmp/jdk.tar.gz && \
+    mkdir -p /opt/oracle && \
+    tar -xzf /tmp/jdk.tar.gz -C /opt/oracle && \
+    rm /tmp/jdk.tar.gz && \
+    JDK_DIR=$(ls -d /opt/oracle/jdk-* | head -n1) && \
+    ln -s "$JDK_DIR" /opt/oracle/jdk
+ENV JAVA_HOME=/opt/oracle/jdk
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
-# Download the Microsoft GPG key and save it to a file
-RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg  && \
-    # Define the OS version
-    OS_VERSION=$(lsb_release -r | awk '{print $2}') && \
-    # Get the distribution codename
-    OS_CODENAME=$(lsb_release -cs) && \
-    # Get the OS name e.g Debian, Ubuntu
-    OS_NAME=$(lsb_release -i | cut -f2 | tr '[:upper:]' '[:lower:]') && \
-    # Add the Microsoft repository to the system's sources list
-    echo "deb [signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/$OS_NAME/$OS_VERSION/prod $OS_CODENAME main" | tee /etc/apt/sources.list.d/microsoft-prod.list
+RUN dnf install -y maven
 
-# Install .NET
-RUN apt-get update -y && apt-get upgrade -y && \
-    apt-get install dotnet-sdk-8.0 -y && \
-    apt-get install dotnet-runtime-8.0 -y
+# Install Oracle PHP (latest stable)
+# Add Remi's RPM repository and install PHP 8.4
+RUN dnf -y install dnf-plugins-core && \
+    dnf -y install https://rpms.remirepo.net/fedora/remi-release-$(rpm -E %fedora).rpm && \
+    dnf module reset php -y && \
+    dnf module enable php:remi-8.4 -y && \
+    dnf -y install php && \
+    dnf clean all
 
-# Download PowerShell package
-RUN curl -fsSL -o powershell.deb https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/powershell_7.4.1-1.deb_amd64.deb && \
-    # Install PowerShell package
-    dpkg -i powershell.deb && \
-    # Install any missing dependencies
-    apt-get install -f && \
-    # Clean up downloaded package
-    rm powershell.deb
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Clean up
-RUN apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/*
+# Install Go (latest stable)
+ENV GO_VERSION=1.22.0
+RUN wget https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz && \
+    rm go${GO_VERSION}.linux-amd64.tar.gz
+ENV PATH="/usr/local/go/bin:${PATH}"
 
-# Create agent user and set up home directory
-RUN useradd -m -d /home/agent agent && \
-    mkdir /home/agent/.dotnet && \
-    mkdir /home/agent/.dotnet/tools
+# Set default shell
+SHELL ["/bin/bash", "-c"]
 
-# Own the user home directory
-RUN chown -R agent:agent /home/agent
-# Own the dotnet directory
-RUN chown -R agent:agent /usr/share/dotnet/sdk
-# Own the global node_modules to enable global installations
-RUN chown -R agent:agent /usr/lib/node_modules
-# Own the global executable folder which npm symlinks to.
-RUN chown -R agent:agent /usr/bin
+RUN mkdir -p /workspaces
+# Set working directory
+WORKDIR /workspaces
 
-# Add user to docker group
-RUN usermod -aG docker agent && \
-    newgrp docker
+# Create user chris with UID 1000 and GID 1000 (adjust as needed)
 
-# Switch to non-root user
-USER agent
+# Create docker group if it doesn't exist, then add chris to docker group
+RUN groupdel -f docker || true && \
+    groupadd -g 977 docker && \
+    useradd -m -u 1000 -s /bin/bash chris && \
+    usermod -aG docker chris
 
-# Set environment variables for .NET
-ENV DOTNET_ROOT=/home/agent/.dotnet
-ENV PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools
-ENV PATH="/usr/lib/node_modules/:${PATH}"
-ENV PATH="/usr/bin:${PATH}"
+USER chris
 
-# Check versions for each tool
-RUN node -v
-RUN npm -v 
-RUN dotnet --version
-RUN git --version
+# Install Rust (via rustup)
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
+    . $HOME/.cargo/env && \
+    rustup component add rust-src
+ENV PATH="/home/chris/.cargo/bin:${PATH}"
 
-# Install npm dependencies
-RUN npm i -g @angular/cli yarn pnpm vite bun
+ENV NVM_DIR="/home/chris/.nvm"
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash && \
+    export NVM_DIR="$NVM_DIR" && \
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && \
+    nvm install --lts && \
+    nvm use --lts && \
+    npm install -g typescript && \
+    npm install -g bun && \
+    nvm cache clear
+ENV PATH="/home/chris/.nvm/versions/node/$(ls /home/chris/.nvm/versions/node | sort -V | tail -n1)/bin:${PATH}"
 
-RUN yarn -v
-RUN pnpm -v
-RUN vite --version
-RUN bun --version
+RUN curl -sSL https://dot.net/v1/dotnet-install.sh -o /home/chris/dotnet-install.sh && \
+    chmod +x /home/chris/dotnet-install.sh && \
+    /home/chris/dotnet-install.sh --channel LTS --install-dir /home/chris/.dotnet && \
+    /home/chris/dotnet-install.sh --channel STS --install-dir /home/chris/.dotnet && \
+    rm /home/chris/dotnet-install.sh
+ENV DOTNET_ROOT="/home/chris/.dotnet"
+ENV PATH="/home/chris/.dotnet:${PATH}"
+
+# Print versions for verification
+RUN dotnet --list-sdks && \
+    bash -c 'export NVM_DIR="/home/chris/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && node --version && npm --version && tsc --version' && \
+    php --version && \
+    composer --version && \
+    go version && \
+    java -version
+
+CMD ["bash"]
