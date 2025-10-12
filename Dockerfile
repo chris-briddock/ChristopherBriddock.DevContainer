@@ -88,11 +88,22 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | b
     nvm cache clear
 ENV PATH="/home/chris/.nvm/versions/node/$(ls /home/chris/.nvm/versions/node | sort -V | tail -n1)/bin:${PATH}"
 
-RUN curl -sSL https://dot.net/v1/dotnet-install.sh -o /home/chris/dotnet-install.sh && \
-    chmod +x /home/chris/dotnet-install.sh && \
-    /home/chris/dotnet-install.sh --channel LTS --install-dir /home/chris/.dotnet && \
-    /home/chris/dotnet-install.sh --channel STS --install-dir /home/chris/.dotnet && \
-    rm /home/chris/dotnet-install.sh
+# Install .NET SDKs: LTS + STS + .NET 10 Preview
+RUN curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh && \
+    chmod +x /tmp/dotnet-install.sh
+
+# Install latest .NET LTS SDK
+RUN /tmp/dotnet-install.sh --channel LTS --install-dir /home/chris/.dotnet
+
+# Install latest .NET STS SDK
+RUN /tmp/dotnet-install.sh --channel STS --install-dir /home/chris/.dotnet
+
+# Install .NET 10 Preview SDK
+RUN /tmp/dotnet-install.sh --channel 10.0 --quality preview --install-dir /home/chris/.dotnet
+
+# Clean up
+RUN rm /tmp/dotnet-install.sh
+
 ENV DOTNET_ROOT="/home/chris/.dotnet"
 ENV PATH="/home/chris/.dotnet:${PATH}"
 
