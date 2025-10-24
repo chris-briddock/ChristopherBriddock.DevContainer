@@ -15,7 +15,8 @@ RUN dnf -y update && \
     zlib-devel \
     libpq-devel \
     tar \
-    which
+    which \
+    jq
 RUN dnf clean all
 
 # Install Docker CLI (official scripted install)
@@ -114,5 +115,8 @@ RUN dotnet --list-sdks && \
     composer --version && \
     go version && \
     java -version
+
+# Install powershell
+RUN dotnet tool install --global PowerShell
 
 CMD ["bash"]

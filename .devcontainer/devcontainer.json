@@ -16,7 +16,6 @@
 	],
 	// Set the remote user to chris (as defined in Dockerfile)
 	"remoteUser": "chris"
-	
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 
