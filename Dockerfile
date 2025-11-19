@@ -99,9 +99,6 @@ RUN /tmp/dotnet-install.sh --channel LTS --install-dir /home/chris/.dotnet
 # Install latest .NET STS SDK
 RUN /tmp/dotnet-install.sh --channel STS --install-dir /home/chris/.dotnet
 
-# Install .NET 10 Preview SDK
-RUN /tmp/dotnet-install.sh --channel 10.0 --quality preview --install-dir /home/chris/.dotnet
-
 # Clean up
 RUN rm /tmp/dotnet-install.sh
 
