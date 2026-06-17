@@ -1,4 +1,4 @@
-FROM fedora:latest
+FROM fedora:44
 
 # Install base dependencies
 RUN dnf -y update && \
@@ -16,7 +16,8 @@ RUN dnf -y update && \
     libpq-devel \
     tar \
     which \
-    jq
+    jq \
+    python3-pip
 RUN dnf clean all
 
 # Install Docker CLI (official scripted install)
@@ -55,8 +56,10 @@ RUN wget https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz && \
     rm go${GO_VERSION}.linux-amd64.tar.gz
 ENV PATH="/usr/local/go/bin:${PATH}"
 
-# Set default shell
-SHELL ["/bin/bash", "-c"]
+# Install kubectl
+RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
+    chmod +x kubectl && \
+    mv kubectl /usr/local/bin/kubectl
 
 RUN mkdir -p /workspaces
 # Set working directory
@@ -86,10 +89,12 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | b
     nvm use --lts && \
     npm install -g typescript && \
     npm install -g bun && \
+    npm install -g @anthropic-ai/claude-code && \
+    npm install -g opencode-ai && \
     nvm cache clear
 ENV PATH="/home/chris/.nvm/versions/node/$(ls /home/chris/.nvm/versions/node | sort -V | tail -n1)/bin:${PATH}"
 
-# Install .NET SDKs: LTS + STS + .NET 10 Preview
+# Install .NET SDKs: LTS + STS
 RUN curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh && \
     chmod +x /tmp/dotnet-install.sh
 
@@ -107,7 +112,8 @@ ENV PATH="/home/chris/.dotnet:${PATH}"
 
 # Print versions for verification
 RUN dotnet --list-sdks && \
-    bash -c 'export NVM_DIR="/home/chris/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && node --version && npm --version && tsc --version' && \
+    bash -c 'export NVM_DIR="/home/chris/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \
+    . "$NVM_DIR/nvm.sh" && node --version && npm --version && tsc --version' && \
     php --version && \
     composer --version && \
     go version && \
@@ -115,5 +121,30 @@ RUN dotnet --list-sdks && \
 
 # Install powershell
 RUN dotnet tool install --global PowerShell
+
+# Install GitHub CLI (latest binary release)
+RUN GH_VERSION=$(curl -fsSL https://api.github.com/repos/cli/cli/releases/latest | jq -r '.tag_name' | sed 's/v//') && \
+    curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_amd64.tar.gz" -o /tmp/gh.tar.gz && \
+    tar -xf /tmp/gh.tar.gz -C /tmp && \
+    mkdir -p /home/chris/.local/bin && \
+    mv /tmp/gh_${GH_VERSION}_linux_amd64/bin/gh /home/chris/.local/bin/ && \
+    rm -rf /tmp/gh.tar.gz /tmp/gh_${GH_VERSION}_linux_amd64
+
+# Install AWS CLI v2 (user space)
+RUN curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip && \
+    unzip /tmp/awscliv2.zip -d /tmp && \
+    /tmp/aws/install --install-dir /home/chris/.local/aws-cli --bin-dir /home/chris/.local/bin && \
+    rm -rf /tmp/awscliv2.zip /tmp/aws
+
+# Install Azure CLI (user space via pip)
+RUN pip3 install --user azure-cli
+
+# Install Google Cloud CLI (user space)
+RUN curl -fsSL https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-linux-x86_64.tar.gz -o /tmp/google-cloud-cli.tar.gz && \
+    tar -xf /tmp/google-cloud-cli.tar.gz -C /home/chris && \
+    /home/chris/google-cloud-sdk/install.sh --quiet --path-update=false --command-completion=false && \
+    rm /tmp/google-cloud-cli.tar.gz
+
+ENV PATH="/home/chris/.local/bin:/home/chris/google-cloud-sdk/bin:${PATH}"
 
 CMD ["bash"]

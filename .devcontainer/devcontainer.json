@@ -4,27 +4,36 @@
 	"name": "Existing Dockerfile",
 	"build": {
 		// Sets the run context to one level up instead of the .devcontainer folder.
-		"context": "",
+		"context": "..",
 		// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
 		"dockerfile": "../Dockerfile"
 	},
 	// Runtime arguments for the container
 	"runArgs": [
 		"--network=host",
-		// Mount docker socket with SELinux label for Fedora
-		"-v", "/var/run/docker.sock:/var/run/docker.sock:z"
+		// Mount Podman socket (rootless) as Docker socket for tool compatibility
+		"-v", "${localEnv:XDG_RUNTIME_DIR}/podman/podman.sock:/var/run/docker.sock:z"
 	],
 	// Set the remote user to chris (as defined in Dockerfile)
-	"remoteUser": "chris"
+	"remoteUser": "chris",
+	// Install user-space runtimes (Rust, Node/NVM, .NET, PowerShell, Composer) on first start.
+	// "postCreateCommand": "bash .devcontainer/postCreate.sh",
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
 
-	// Uncomment the next line to run commands after the container is created.
-	// "postCreateCommand": "cat /etc/os-release",
-
 	// Configure tool-specific properties.
-	// "customizations": {},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-dotnettools.csdevkit",
+				"anthropic.claude-code",
+				"ms-azuretools.vscode-docker",
+				"sst-dev.opencode",
+				"kickbacksai.kickbacks-ai"
+			]
+		}
+	}
 }
