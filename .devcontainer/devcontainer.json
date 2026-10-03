@@ -11,8 +11,8 @@
 	// Runtime arguments for the container
 	"runArgs": [
 		"--network=host",
-		// Mount Podman socket (rootless) as Docker socket for tool compatibility
-		"-v", "${localEnv:XDG_RUNTIME_DIR}/podman/podman.sock:/var/run/docker.sock:z"
+		// Mount the host Docker socket so the Docker CLI talks to the host daemon
+		"-v", "/var/run/docker.sock:/var/run/docker.sock"
 	],
 	// Set the remote user to chris (as defined in Dockerfile)
 	"remoteUser": "chris",
@@ -31,8 +31,7 @@
 				"ms-dotnettools.csdevkit",
 				"anthropic.claude-code",
 				"ms-azuretools.vscode-docker",
-				"sst-dev.opencode",
-				"kickbacksai.kickbacks-ai"
+				"sst-dev.opencode"
 			]
 		}
 	}

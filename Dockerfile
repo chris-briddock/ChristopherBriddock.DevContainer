@@ -20,13 +20,15 @@ RUN dnf -y update && \
     python3-pip
 RUN dnf clean all
 
-# Install Docker CLI (official scripted install)
+# Install Docker CLI (official script sets up the repo; CLI only, no engine)
 RUN curl -fsSL https://get.docker.com -o get-docker.sh && \
-    sh get-docker.sh --no-install-recommends --skip-engine --skip-compose && \
+    sh get-docker.sh --setup-repo && \
+    dnf -y install docker-ce-cli docker-buildx-plugin && \
+    dnf clean all && \
     rm get-docker.sh
 
-# Install Oracle Java (latest LTS, e.g., 21)
-RUN curl -fsSL https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.tar.gz -o /tmp/jdk.tar.gz && \
+# Install Oracle Java (latest LTS, 25)
+RUN curl -fsSL https://download.oracle.com/java/25/latest/jdk-25_linux-x64_bin.tar.gz -o /tmp/jdk.tar.gz && \
     mkdir -p /opt/oracle && \
     tar -xzf /tmp/jdk.tar.gz -C /opt/oracle && \
     rm /tmp/jdk.tar.gz && \
@@ -67,11 +69,14 @@ WORKDIR /workspaces
 
 # Create user chris with UID 1000 and GID 1000 (adjust as needed)
 
-# Create docker group if it doesn't exist, then add chris to docker group
+# Create docker group matching the host's docker GID (check with: getent group docker),
+# then add chris to docker group so the mounted host socket is usable
+ARG DOCKER_GID=964
 RUN groupdel -f docker || true && \
-    groupadd -g 977 docker && \
+    groupadd -g ${DOCKER_GID} docker && \
     useradd -m -u 1000 -s /bin/bash chris && \
-    usermod -aG docker chris
+    usermod -aG docker chris && \
+    chown chris:chris /workspaces
 
 USER chris
 
@@ -82,7 +87,9 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
 ENV PATH="/home/chris/.cargo/bin:${PATH}"
 
 ENV NVM_DIR="/home/chris/.nvm"
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash && \
+ENV NVM_SYMLINK_CURRENT=true
+RUN NVM_VERSION=$(curl -fsSL https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r '.tag_name') && \
+    curl -fsSL "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh" | bash && \
     export NVM_DIR="$NVM_DIR" && \
     [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && \
     nvm install --lts && \
@@ -92,7 +99,7 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | b
     npm install -g @anthropic-ai/claude-code && \
     npm install -g opencode-ai && \
     nvm cache clear
-ENV PATH="/home/chris/.nvm/versions/node/$(ls /home/chris/.nvm/versions/node | sort -V | tail -n1)/bin:${PATH}"
+ENV PATH="${NVM_DIR}/current/bin:${PATH}"
 
 # Install .NET SDKs: LTS + STS
 RUN curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh && \
